@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+    {% if title %}
+    <title>DCIT 21 Project - {{ title }}</title>
+    {% else %}
+    <title>DCIT 21 Project</title>
+    {% endif %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-title">DCIT 21 PROJECT</div>
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="{{ url_for('calculator') }}">Calculator</a>
+            <a href="{{ url_for('tracker') }}">Fuel Price</a>
+            <a href="#">Services</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+    <main class="page-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

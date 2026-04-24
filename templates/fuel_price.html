@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fuel_lineChart.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="fuel-chart-page">
+  <h3>Global Oil Market Tracker (War Impact 2026)</h3>
+
+  <div class="chart-wrapper">
+    <canvas id="fuelPriceChart" aria-label="Fuel price line chart" role="img"></canvas>
+  </div>
+
+</div>
+<h3>Brent Crude Price: {{ brent_price }}</h3>
+<script id="fuel-data-json" type="application/json">
+  {{ data | tojson }}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='JS/fuel_lineChart.js') }}"></script>
+{% endblock %}
