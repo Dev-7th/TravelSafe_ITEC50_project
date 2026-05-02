@@ -168,27 +168,30 @@ def get_latest_adjustment(category="Adjustments"):
 def get_all_latest_reports():
     category = ["NCR", "North Luzon", "Visayas", "Mindanao"]
     PDF_Files = []
+
     for items in category:
         link = get_latest_report_NCR_NLuzon_Visayas_Mindanao(items)
-        section = {
+        PDF_Files.append( {
             "category": items,
-            "pdf_link": link
-        }
-        PDF_Files.append(section)
-    SLuzon_links = get_latest_report_SLuzon()
-    SLuzon_dict = {
-        "category": "South Luzon",
-        "pdf_link": SLuzon_links
-    }
-    PDF_Files.append(SLuzon_dict)
+            "label": f"{items} Main report",
+            "url": link
+        })
+
+    SLuzon_data = get_latest_report_SLuzon()
+    if SLuzon_data:
+        for entry in SLuzon_data:
+            PDF_Files.append({
+                "category": "South Luzon",
+                "label": entry['region'],
+                "url": entry['link']
+            })
 
     Adjustment_links = get_latest_adjustment()
-    Adjustment_dict = {
-        "category": "Adjustment",
-        "pdf_link": Adjustment_links
-    }
-    PDF_Files.append(Adjustment_dict)
+    if Adjustment_links:
+        PDF_Files.append({
+            "category": "Adjustment",
+            "label": "Price Adjustment Notice",
+            "url": Adjustment_links
+        })
+ 
     return PDF_Files
-
-
-print(get_all_latest_reports())
