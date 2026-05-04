@@ -2,12 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 def get_request_response(category):
     category_map = {
-        "Adjustments": "Price Adjustments",
+        "ADJUSTMENT": "Price Adjustments",
         "NCR": "NCR Pump Prices",
-        "South Luzon": "South Luzon Pump Prices",
-        "North Luzon": "North Luzon Pump Prices",
-        "Visayas": "Visayas Pump Prices",
-        "Mindanao": "Mindanao Pump Prices"
+        "SOUTH LUZON": "South Luzon Pump Prices",
+        "NORTH LUZON": "North Luzon Pump Prices",
+        "VISAYAS": "Visayas Pump Prices",
+        "MINDANAO": "Mindanao Pump Prices"
     }
     
     base_url = "https://doe.gov.ph/articles/group/liquid-fuels"
@@ -72,7 +72,7 @@ def get_latest_report_NCR_NLuzon_Visayas_Mindanao(category="North Luzon"):
         print(f"Network Error: {e}")
         return None
 
-def get_latest_report_SLuzon(category="South Luzon"):
+def get_latest_report_SLuzon(category="SOUTH LUZON"):
     try:
         print(f"Scouting the {category} section...")
         response = get_request_response(category)
@@ -130,7 +130,7 @@ def get_latest_report_SLuzon(category="South Luzon"):
         print(f"Network Error: {e}")
         return None
 
-def get_latest_adjustment(category="Adjustments"):
+def get_latest_adjustment(category="ADJUSTMENT"):
     try:
         print(f"Scouting the {category} section...")
         response = get_request_response(category)
@@ -166,7 +166,7 @@ def get_latest_adjustment(category="Adjustments"):
         return None
 
 def get_all_latest_reports():
-    category = ["NCR", "North Luzon", "Visayas", "Mindanao"]
+    category = ["NCR", "NORTH LUZON", "VISAYAS", "MINDANAO"]
     PDF_Files = []
 
     for items in category:
@@ -181,7 +181,7 @@ def get_all_latest_reports():
     if SLuzon_data:
         for entry in SLuzon_data:
             PDF_Files.append({
-                "category": "South Luzon",
+                "category": "SOUTH LUZON",
                 "label": entry['region'],
                 "url": entry['link']
             })
@@ -189,7 +189,7 @@ def get_all_latest_reports():
     Adjustment_links = get_latest_adjustment()
     if Adjustment_links:
         PDF_Files.append({
-            "category": "Adjustment",
+            "category": "ADJUSTMENT",
             "label": "Price Adjustment Notice",
             "url": Adjustment_links
         })
