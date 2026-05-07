@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="fuel-page-content">
 <div class="fuel-chart-page">
   <h3>Global Oil Market Tracker (War Impact 2026)</h3>
 
@@ -13,10 +14,56 @@
   </div>
 
 </div>
-<h3>Brent Crude Price: {{ brent_price }}</h3>
+<div class="market-summary">
+  <div class="market-summary-item brent-summary">
+    <span class="summary-label">Brent Crude</span>
+    <strong>{{ brent_price }}</strong>
+  </div>
+
+  <div id="ncr-display" class="ncr-summary" aria-live="polite">
+    <span class="summary-empty">Loading NCR averages...</span>
+  </div>
+</div>
+
+<div id="Searchable_fuelPrice_Table">
+  <div class="fuel-table-controls">
+    <input type="text" id="search-input" placeholder="Search city or province, e.g. Cavite">
+
+    <select id="fuel-type-select" aria-label="Fuel type">
+      <option value="">All fuel types</option>
+      {% for fuel_type in fuel_types %}
+      <option value="{{ fuel_type }}">{{ fuel_type }}</option>
+      {% endfor %}
+    </select>
+
+    <button id="fuel-search-button" type="button">Search</button>
+  </div>
+
+  <p id="fuel-table-status">Search a city or province to view fuel prices.</p>
+  
+  <table id="results-table">
+      <thead>
+          <tr>
+              <th>Brand</th>
+              <th>City</th>
+              <th>Province</th>
+              <th>Fuel Type</th>
+              <th>Min Price</th>
+              <th>Max Price</th>
+              <th>Average Price</th>
+          </tr>
+      </thead>
+      <tbody id="table-body">
+      </tbody>
+  </table>
+
+</div>
 <script id="fuel-data-json" type="application/json">
   {{ data | tojson }}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='JS/NCR_Ave_fetcher.js') }}"></script>
 <script src="{{ url_for('static', filename='JS/fuel_lineChart.js') }}"></script>
+<script src="{{ url_for('static', filename='JS/table_fuelPrice.js') }}"></script>
+</div>
 {% endblock %}

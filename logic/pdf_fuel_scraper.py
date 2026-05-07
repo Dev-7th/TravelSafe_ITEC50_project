@@ -170,6 +170,17 @@ def _set_brand_prices(entry, brand, min_price, max_price):
     entry[f"{key_base}_max"] = max_price
 
 
+def _ncr_province_or_default(province):
+    if province is None:
+        return "Metro Manila"
+
+    province_text = str(province).strip()
+    if not province_text or province_text.upper() in {"UNKNOWN", "NULL", "NONE", "N/A", "#N/A"}:
+        return "Metro Manila"
+
+    return province_text
+
+
 def _extract_float_prices(value):
     if not value:
         return []
@@ -1698,6 +1709,7 @@ def _scrape_ncr_table(table, category_name, current_province, current_city, glob
     data_rows = []
     headers_to_ignore = ["CITY", "MUNICIPALITY", "PROVINCE", "AREA", "CITY/MUNICIPALITY", "CITY/AREA"]
     sorted_fuels = sorted(FUELS, key=len, reverse=True)
+    current_province = _ncr_province_or_default(current_province)
 
     col_map = get_column_mapping(table)
     if col_map:
@@ -1715,7 +1727,12 @@ def _scrape_ncr_table(table, category_name, current_province, current_city, glob
         if p_idx is None:
             continue
 
-        _, city_from_row = location_ctx
+        province_from_row, city_from_row = location_ctx
+        if province_from_row:
+            current_province = _ncr_province_or_default(province_from_row)
+        else:
+            current_province = _ncr_province_or_default(current_province)
+
         if city_from_row and city_from_row != current_city:
             current_city = city_from_row
             pending_brand_pairs = {}
@@ -1909,11 +1926,11 @@ def scrape_pdf_content(pdf_url, category_name):
         print(f"Error scraping {pdf_url}: {e}")
         return []
 
-"""if __name__ == "__main__":
+if __name__ == "__main__":
     # --- TEST EXECUTION ---
     # Mocking the reports for the sake of standard testing
     mock_reports = [
-{"url": "https://prod-cms.doe.gov.ph/documents/d/guest/website-posting-itmsfuel-april-28-may-4-1-pdf", "category": "ADJUSTMENT"}
+{"url": "https://prod-cms.doe.gov.ph/documents/d/guest/ncr-price-monitoring-04282026-pdf", "category": "NCR"}
     ]
 
     final_data = []
@@ -1925,5 +1942,5 @@ def scrape_pdf_content(pdf_url, category_name):
     print(f"\nScraped {len(final_data)} total fuel price records.")
     if final_data:
         #save_fuel_data(final_data)
-        save_adjustment_data(final_data)
-        #print(json.dumps(final_data[:3], indent=4))"""
+        #save_adjustment_data(final_data)
+        print(json.dumps(final_data[:3], indent=4))

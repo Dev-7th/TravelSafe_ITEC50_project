@@ -1,3 +1,8 @@
+.fuel-page-content {
+  width: 100%;
+  max-width: 960px;
+}
+
 .fuel-chart-page {
   margin-top: 10px;
 }
@@ -15,4 +20,157 @@
 #fuelPriceChart {
   width: 100%;
   height: 420px;
+}
+
+.market-summary {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto 20px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.ncr-summary {
+  display: flex;
+  gap: 10px;
+}
+
+.market-summary-item {
+  min-width: 130px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.brent-summary {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+}
+
+.summary-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.brent-summary .summary-label {
+  color: #cbd5e1;
+}
+
+.market-summary-item strong {
+  color: #111827;
+  font-size: 1rem;
+}
+
+.brent-summary strong {
+  color: #ffffff;
+}
+
+.summary-empty {
+  align-self: center;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+#Searchable_fuelPrice_Table {
+  width: 100%;
+  max-width: 960px;
+  margin: 20px auto;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.fuel-table-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 220px) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.fuel-table-controls input,
+.fuel-table-controls select,
+.fuel-table-controls button {
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.fuel-table-controls input,
+.fuel-table-controls select {
+  width: 100%;
+  padding: 0 12px;
+  background: #ffffff;
+}
+
+.fuel-table-controls button {
+  padding: 0 18px;
+  color: #ffffff;
+  background: #1f2937;
+  cursor: pointer;
+}
+
+.fuel-table-controls button:hover {
+  background: #374151;
+}
+
+#fuel-table-status {
+  margin: 12px 0;
+  color: #475569;
+}
+
+#results-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+#results-table th,
+#results-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+#results-table th {
+  background: #f8fafc;
+  color: #111827;
+  font-size: 0.9rem;
+}
+
+#results-table td {
+  color: #1f2937;
+}
+
+@media (max-width: 720px) {
+  .market-summary {
+    flex-direction: column;
+  }
+
+  .ncr-summary {
+    overflow-x: auto;
+  }
+
+  .fuel-table-controls {
+    grid-template-columns: 1fr;
+  }
 }
