@@ -17,12 +17,14 @@
         <nav class="site-nav" aria-label="Main navigation">
             <a href="{{ url_for('calculator') }}">Calculator</a>
             <a href="{{ url_for('tracker') }}">Fuel Price</a>
-            <a href="#">Services</a>
+            <a href="{{ url_for('map') }}">Map</a>
             <a href="#">Contact</a>
         </nav>
     </header>
     <main class="page-content">
         {% block content %}{% endblock %}
     </main>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

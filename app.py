@@ -4,6 +4,7 @@ from logic.data_handler import get_fuel_history
 from logic.brent_fetcher import get_live_brent_price
 from logic.ave_FuelType_Data_query import get_ncr_fuel_averages
 from logic.table_data_query import get_fuel_types, search_fuel_prices
+from logic.data_fetcher_DB import get_latest_city_fuel_prices
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -23,9 +24,9 @@ def tracker():
     fuel_types = get_fuel_types()
     return render_template('fuel_price.html', data=fuel_data, brent_price=brent_price, fuel_types=fuel_types)
 
-@app.route('/Nearest_GasStation')
-def Nearest_GasStation():
-    pass
+@app.route('/map')
+def map():
+    return render_template('map.html')
 
 @app.route('/api/ncr-averages')
 def ncr_averages_api():
@@ -40,6 +41,22 @@ def fuel_prices_api():
     data = search_fuel_prices(search_term, fuel_type)
 
     return jsonify(data)
+
+@app.route('/api/city-fuel-prices')
+def city_fuel_prices_api():
+    city = request.args.get('city', '').strip()
+    if not city:
+        return jsonify({
+            'found': False,
+            'message': 'City is required.',
+            'brands': {},
+            'lowest_price': None,
+            'lowest_brands': []
+        }), 400
+
+    data = get_latest_city_fuel_prices(city)
+    status_code = 200 if data.get('found') else 404
+    return jsonify(data), status_code
 
 if __name__ == '__main__':
     app.run(debug=True)

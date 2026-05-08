@@ -1,0 +1,95 @@
+{% extends 'base.html' %} {% block head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/calculator.css') }}"
+/>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .map-tool {
+    width: min(100%, 980px);
+  }
+
+  #search-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  #city-input {
+    flex: 1 1 260px;
+    min-height: 38px;
+    padding: 0 12px;
+  }
+
+  #search-container button {
+    min-height: 38px;
+    padding: 0 14px;
+    cursor: pointer;
+  }
+
+  #map-status {
+    min-height: 20px;
+    margin: 0 0 10px;
+    color: #374151;
+    font-size: 0.95rem;
+  }
+
+  #map-status[data-type="success"] {
+    color: #166534;
+  }
+
+  #map-status[data-type="error"] {
+    color: #b91c1c;
+  }
+
+  .fuel-station-pin {
+    background: transparent;
+    border: 0;
+  }
+
+  .fuel-station-pin span {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid white;
+    border-radius: 50% 50% 50% 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transform: rotate(-45deg);
+  }
+
+  .station-popup table {
+    border-collapse: collapse;
+    margin: 8px 0;
+    width: 100%;
+  }
+
+  .station-popup td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 4px 8px 4px 0;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %} {% block content %}
+<section class="map-tool">
+  <div id="search-container">
+    <input type="text" id="city-input" placeholder="Enter City/Municipality" />
+    <button onclick="searchCity()">Search</button>
+    <button onclick="getLocation()">Near Me</button>
+  </div>
+
+  <p id="map-status">Enter a city or use Near Me to find fuel stations with the latest local prices.</p>
+
+  <div id="map" style="height: 500px; width: 100%"></div>
+</section>
+
+
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='JS/Map_initializer.js') }}"></script>
+<script src="{{ url_for('static', filename='JS/fuel_station_finder.js') }}"></script>
+<script src="{{ url_for('static', filename='JS/overpass_processor.js') }}"></script>
+<script src="{{ url_for('static', filename='JS/location_processor.js') }}"></script>
+{% endblock %}

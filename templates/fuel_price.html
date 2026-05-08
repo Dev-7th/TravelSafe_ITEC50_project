@@ -58,6 +58,11 @@
   </table>
 
 </div>
+
+</div>
+
+{% endblock %}
+{% block scripts %}
 <script id="fuel-data-json" type="application/json">
   {{ data | tojson }}
 </script>
@@ -65,5 +70,4 @@
 <script src="{{ url_for('static', filename='JS/NCR_Ave_fetcher.js') }}"></script>
 <script src="{{ url_for('static', filename='JS/fuel_lineChart.js') }}"></script>
 <script src="{{ url_for('static', filename='JS/table_fuelPrice.js') }}"></script>
-</div>
 {% endblock %}
