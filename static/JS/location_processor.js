@@ -31,6 +31,26 @@ async function fetchCityPrices(city) {
   return data;
 }
 
+async function fetchNearestPrices(city, coordinates) {
+  if (!coordinates) {
+    return fetchCityPrices(city);
+  }
+
+  const params = new URLSearchParams({
+    city,
+    lat: coordinates.lat,
+    lng: coordinates.lon,
+  });
+  const response = await fetch(`/api/get-nearest-prices?${params.toString()}`);
+  const data = await response.json();
+
+  if (!response.ok || !data.found) {
+    throw new Error(data.message || `No fuel price data found near ${city}.`);
+  }
+
+  return data;
+}
+
 async function fetchCityCenter(city, province) {
   const query = [city, province, "Philippines"].filter(Boolean).join(", ");
   const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`);
@@ -59,21 +79,22 @@ async function executeFuelSearch(city, fallbackCenter = null) {
   }
 
   try {
+    setMapStatus(`Finding coordinates for ${cleanCity}...`);
+    const cityCenter = fallbackCenter || await fetchCityCenter(cleanCity);
+
+    if (searchId !== latestSearchId) {
+      return;
+    }
+
     setMapStatus(`Fetching latest fuel prices for ${cleanCity}...`);
-    const cityPriceData = await fetchCityPrices(cleanCity);
+    const cityPriceData = await fetchNearestPrices(cleanCity, cityCenter);
 
     if (searchId !== latestSearchId) {
       return;
     }
 
-    const cityCenter = fallbackCenter || await fetchCityCenter(cityPriceData.city || cleanCity, cityPriceData.province);
-
-    if (searchId !== latestSearchId) {
-      return;
-    }
-
-    setMapStatus(`Searching physical fuel stations in ${cityPriceData.city || cleanCity}...`);
-    const stations = await findFuelStationsByCity(cityPriceData.city || cleanCity, cityCenter);
+    setMapStatus(`Searching physical fuel stations in ${cleanCity}...`);
+    const stations = await findFuelStationsByCity(cleanCity, cityCenter);
 
     if (searchId !== latestSearchId) {
       return;
@@ -81,13 +102,16 @@ async function executeFuelSearch(city, fallbackCenter = null) {
 
     if (!stations.length) {
       stationLayer.clearLayers();
-      setMapStatus(`No fuel stations found in OpenStreetMap for ${cityPriceData.city || cleanCity}.`, "error");
+      setMapStatus(`No fuel stations found in OpenStreetMap for ${cleanCity}.`, "error");
       return;
     }
 
     const summary = renderFuelStations(stations, cityPriceData);
+    const fallbackMessage = cityPriceData.fallback_used
+      ? `Prices for ${cleanCity} are unavailable. Showing prices from nearest city: ${cityPriceData.source_city}. `
+      : "";
     setMapStatus(
-      `Found ${summary.totalStations} stations. ${summary.matchedStations} matched DB brands. Green pins show the lowest city price.`,
+      `${fallbackMessage}Found ${summary.totalStations} stations. ${summary.matchedStations} assigned DB prices, including ${summary.independentStations} independent stations. Green pins show the lowest available price.`,
       "success"
     );
   } catch (error) {

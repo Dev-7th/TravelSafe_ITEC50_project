@@ -1,39 +1,131 @@
-{% extends 'base.html' %} {% block head %}
+{% extends 'base.html' %}
+
+{% block head %}
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/calculator.css') }}"
 />
-{% endblock %} {% block content %}
-<div class="card">
-  <h2>Fuel Cost Calculator</h2>
-  <form method="POST">
-    <input
-      type="number"
-      name="distance"
-      placeholder="Distance (km)"
-      required
-    /><br /><br />
-    <input
-      type="number"
-      name="efficiency"
-      placeholder="Efficiency (km/L)"
-      required
-    /><br /><br />
-    <input
-      type="number"
-      step="0.01"
-      name="price"
-      placeholder="Price per Liter"
-      required
-    /><br /><br />
-    <button type="submit">Calculate</button>
-  </form>
-
-  {% if result %}
-  <h3>Estimate Cost: ${{ result }}</h3>
-  {% endif %}
-</div>
-
-
 {% endblock %}
+
+{% block content %}
+<section class="calculator-shell">
+  <div class="calculator-panel">
+    <div class="calculator-header">
+      <p class="eyebrow">Trip estimator</p>
+      <h1>Fuel Cost Calculator</h1>
+    </div>
+
+    <form class="calculator-form" method="POST">
+      <label class="field">
+        <span>Vehicle type</span>
+        <select name="vehicle_type" required>
+          <option value="" disabled {% if not selected_vehicle %}selected{% endif %}>
+            Select vehicle
+          </option>
+          {% for group in vehicle_groups %}
+          <optgroup label="{{ group.name }}">
+            {% for vehicle in group.vehicles %}
+            <option
+              value="{{ vehicle.key }}"
+              {% if selected_vehicle == vehicle.key %}selected{% endif %}
+            >
+              {{ vehicle.label }} - {{ vehicle.efficiency }} km/L
+            </option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Fuel type</span>
+        <select name="fuel_type" required>
+          <option value="" disabled {% if not selected_fuel_type %}selected{% endif %}>
+            Select fuel
+          </option>
+          {% for fuel_type in fuel_types %}
+          <option
+            value="{{ fuel_type }}"
+            {% if selected_fuel_type == fuel_type %}selected{% endif %}
+          >
+            {{ fuel_type }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="distance-row">
+        <label class="field">
+          <span>Distance</span>
+          <input
+            type="number"
+            name="distance"
+            min="0.1"
+            step="0.1"
+            value="{{ distance_value }}"
+            placeholder="Kilometers"
+            required
+          />
+        </label>
+
+        <label class="roundtrip-toggle">
+          <input
+            type="checkbox"
+            name="roundtrip"
+            {% if roundtrip %}checked{% endif %}
+          />
+          <span>Roundtrip</span>
+        </label>
+      </div>
+
+      {% if error %}
+      <p class="form-error">{{ error }}</p>
+      {% endif %}
+
+      <button class="calculate-button" type="submit">Calculate</button>
+    </form>
+  </div>
+
+  <aside class="result-panel">
+    {% if result %}
+    <p class="eyebrow">Estimated cost</p>
+    <div class="total-cost">PHP {{ "%.2f"|format(result.total_cost) }}</div>
+
+    <dl class="result-grid">
+      <div>
+        <dt>Vehicle</dt>
+        <dd>{{ result.vehicle.label }}</dd>
+      </div>
+      <div>
+        <dt>Fuel economy</dt>
+        <dd>{{ result.vehicle.efficiency }} km/L</dd>
+      </div>
+      <div>
+        <dt>Fuel type</dt>
+        <dd>{{ result.fuel_type }}</dd>
+      </div>
+      <div>
+        <dt>Average price</dt>
+        <dd>PHP {{ "%.2f"|format(result.price_per_liter) }}/L</dd>
+      </div>
+      <div>
+        <dt>Total distance</dt>
+        <dd>{{ "%.1f"|format(result.total_distance) }} km</dd>
+      </div>
+      <div>
+        <dt>Liters needed</dt>
+        <dd>{{ "%.2f"|format(result.liters_needed) }} L</dd>
+      </div>
+    </dl>
+    {% else %}
+    <p class="eyebrow">Ready</p>
+    <div class="empty-total">PHP 0.00</div>
+    <p class="empty-note">
+      Choose a vehicle, fuel type, and distance to estimate your trip cost.
+    </p>
+    {% endif %}
+  </aside>
+</section>
+{% endblock %}
+
 {% block scripts %}{% endblock %}

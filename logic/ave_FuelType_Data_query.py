@@ -8,6 +8,11 @@ def get_ncr_fuel_averages():
     conn.row_factory = sqlite3.Row  
     cursor = conn.cursor()
     query = """
+    WITH latest_report AS (
+        SELECT MAX(date_monitored) AS date_monitored
+        FROM price_records
+        WHERE date_monitored IS NOT NULL
+    )
     SELECT 
         pr.fuel_type, 
         ROUND(AVG((pr.price_min + pr.price_max) / 2), 2) AS average_price
@@ -15,6 +20,7 @@ def get_ncr_fuel_averages():
     JOIN cities c ON pr.city_id = c.id
     JOIN provinces p ON c.province_id = p.id
     JOIN regions r ON p.region_id = r.id
+    JOIN latest_report lr ON pr.date_monitored = lr.date_monitored
     WHERE r.name = 'NCR'
         AND pr.brand_name != 'OVERALL RANGE'
         AND pr.price_min IS NOT NULL

@@ -1,5 +1,7 @@
 let stationLayer = L.layerGroup().addTo(map);
 
+const BIG_BRANDS = ["PETRON", "SHELL", "CALTEX", "PHOENIX", "UNIOIL", "SEAOIL", "PTT", "FLYING V"];
+
 const BRAND_ALIASES = {
   CALTEX: ["CALTEX", "CALTEX HAVOLINE"],
   "FLYING V": ["FLYING V", "FLYING-V"],
@@ -8,7 +10,6 @@ const BRAND_ALIASES = {
   PTT: ["PTT"],
   SEAOIL: ["SEAOIL", "SEA OIL"],
   SHELL: ["SHELL", "PILIPINAS SHELL"],
-  TOTAL: ["TOTAL", "TOTALENERGIES", "TOTAL ENERGIES"],
   UNIOIL: ["UNIOIL", "UNI OIL"],
 };
 
@@ -35,21 +36,22 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function matchStationBrand(station, brandPrices) {
+function matchStationBrand(station, cityPriceData = {}) {
   const stationText = normalizeBrand([
     station.tags && station.tags.brand,
     station.tags && station.tags.name,
     station.tags && station.tags.operator,
   ].filter(Boolean).join(" "));
 
-  for (const brandName of Object.keys(brandPrices || {})) {
+  const bigBrands = cityPriceData.big_brands || BIG_BRANDS;
+  for (const brandName of bigBrands) {
     const candidates = BRAND_ALIASES[brandName] || [brandName];
     if (candidates.some((candidate) => stationText.includes(normalizeBrand(candidate)))) {
       return brandName;
     }
   }
 
-  return null;
+  return "INDEPENDENT";
 }
 
 function markerIcon(isCheapest, hasPriceMatch) {
@@ -79,6 +81,10 @@ function priceRangeText(fuel) {
   return `${formatPeso(fuel.price_min)} - ${formatPeso(fuel.price_max)}`;
 }
 
+function sourceLabel(item) {
+  return item && item.is_province_average ? " (Province Average)" : "";
+}
+
 function buildPopup(station, brandName, brandData, cityPriceData, isCheapest) {
   const tags = station.tags || {};
   const stationName = escapeHtml(stationDisplayName(station));
@@ -87,7 +93,7 @@ function buildPopup(station, brandName, brandData, cityPriceData, isCheapest) {
     ? brandData.fuel_types.map((fuel) => `
         <tr>
           <td>${escapeHtml(fuel.fuel_type || "Fuel")}</td>
-          <td>${priceRangeText(fuel)}</td>
+          <td>${priceRangeText(fuel)}${sourceLabel(fuel)}</td>
         </tr>
       `).join("")
     : `<tr><td colspan="2">No matching price in the city database.</td></tr>`;
@@ -95,7 +101,7 @@ function buildPopup(station, brandName, brandData, cityPriceData, isCheapest) {
   return `
     <div class="station-popup">
       <strong>${stationName}</strong>
-      <p>${brandLabel}${isCheapest ? " - cheapest matched brand" : ""}</p>
+      <p>${brandLabel}${sourceLabel(brandData)}${isCheapest ? " - cheapest matched brand" : ""}</p>
       <table>
         <tbody>${rows}</tbody>
       </table>
@@ -119,8 +125,8 @@ function renderFuelStations(stations, cityPriceData) {
   const bounds = [];
 
   stations.forEach((station) => {
-    const brandName = matchStationBrand(station, brandPrices);
-    const brandData = brandName ? brandPrices[brandName] : null;
+    const brandName = matchStationBrand(station, cityPriceData);
+    const brandData = brandPrices[brandName] || null;
     const isCheapest = brandName && cheapestBrands.has(brandName);
     const latLng = stationLatLng(station);
 
@@ -140,6 +146,7 @@ function renderFuelStations(stations, cityPriceData) {
 
   return {
     totalStations: stations.length,
-    matchedStations: stations.filter((station) => matchStationBrand(station, brandPrices)).length,
+    matchedStations: stations.filter((station) => brandPrices[matchStationBrand(station, cityPriceData)]).length,
+    independentStations: stations.filter((station) => matchStationBrand(station, cityPriceData) === "INDEPENDENT").length,
   };
 }

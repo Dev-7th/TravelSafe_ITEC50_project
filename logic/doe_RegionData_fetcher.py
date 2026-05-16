@@ -19,7 +19,7 @@ def get_request_response(category):
     response = requests.get(base_url, params=params)
     return response.text
 
-def get_latest_report_NCR_NLuzon_Visayas_Mindanao(category="North Luzon"):
+def get_latest_report_NCR_NLuzon_Visayas(category="North Luzon"):
 
     try:
         print(f"Scouting the {category} section...")
@@ -130,6 +130,60 @@ def get_latest_report_SLuzon(category="SOUTH LUZON"):
         print(f"Network Error: {e}")
         return None
 
+
+
+def get_latest_report_Mindanao(category="MINDANAO"):
+
+    try:
+        print(f"Scouting the {category} section...")
+        response = get_request_response(category)
+        soup = BeautifulSoup(response, 'html.parser')
+        
+
+        main_box = soup.find('div', class_='xl:col-span-7')
+        
+        if not main_box:
+            print("Error: Could not find the main content box.")
+            return None
+            
+        if main_box:
+
+            master_list = main_box.find('ul')
+            
+            if master_list:
+
+                newest_month_block = master_list.find('li')
+                
+                if newest_month_block:
+
+                    links = newest_month_block.find_all('a')
+                    
+                    valid_links = []
+                    for link in links:
+                        href = link.get('href', '')
+
+                        if "prod-cms.doe.gov.ph" in href or "/documents/d/guest" in href:
+                            valid_links.append(link)
+                    
+
+                    if valid_links:
+                        latest_link = valid_links[0]
+                        
+                        href = latest_link.get('href')
+                        text = latest_link.get_text().strip()
+                        
+                        print(f"Success! Found latest report: {text}")
+                        
+                        if href.startswith('/'):
+                            return "https://doe.gov.ph" + href
+                        return href
+                        
+        print("No PDF links found in this section.")
+        return None
+        
+    except Exception as e:
+        print(f"Network Error: {e}")
+        return None
 def get_latest_adjustment(category="ADJUSTMENT"):
     try:
         print(f"Scouting the {category} section...")
@@ -166,11 +220,11 @@ def get_latest_adjustment(category="ADJUSTMENT"):
         return None
 
 def get_all_latest_reports():
-    category = ["NCR", "NORTH LUZON", "VISAYAS", "MINDANAO"]
+    category = ["NCR", "NORTH LUZON", "VISAYAS"]
     PDF_Files = []
 
     for items in category:
-        link = get_latest_report_NCR_NLuzon_Visayas_Mindanao(items)
+        link = get_latest_report_NCR_NLuzon_Visayas(items)
         PDF_Files.append( {
             "category": items,
             "label": f"{items} Main report",
@@ -193,5 +247,15 @@ def get_all_latest_reports():
             "label": "Price Adjustment Notice",
             "url": Adjustment_links
         })
+    
+    Mindanao_data = get_latest_report_Mindanao()
+    if Mindanao_data:
+            PDF_Files.append({
+                "category": "MINDANAO",
+                "label": "Mindanao Main report",
+                "url": entry['link']
+            })
  
     return PDF_Files
+
+

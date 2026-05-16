@@ -3,24 +3,65 @@ from datetime import datetime
 
 DB_NAME = "DataBase/fuel_prices.db"
 
-def get_or_create_id(cursor, table, name, parent_id=None, parent_col=None):
+def find_existing_id(cursor, table, name, parent_id=None, parent_col=None):
+    name = (name or "").strip()
+    if not name:
+        return None
+
     if parent_id and parent_col:
-        # Check with parent link (e.g., City 'Bacoor' in Province 'Cavite')
-        cursor.execute(f"SELECT id FROM {table} WHERE name = ? AND {parent_col} = ?", (name, parent_id))
+        cursor.execute(
+            f"""
+            SELECT id FROM {table}
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+              AND {parent_col} = ?
+            """,
+            (name, parent_id),
+        )
     else:
-        # Check top level (e.g., Region 'SOUTH LUZON')
-        cursor.execute(f"SELECT id FROM {table} WHERE name = ?", (name,))
+        cursor.execute(
+            f"""
+            SELECT id FROM {table}
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            """,
+            (name,),
+        )
+
     result = cursor.fetchone()
-    if result:
-        return result[0]
-    else:
-        if parent_id and parent_col:
-            # Insert with parent link (e.g., City 'Bacoor' in Province 'Cavite')
-            cursor.execute(f"INSERT INTO {table} (name, {parent_col}) VALUES (?, ?)", (name, parent_id))
-        else:
-            # Insert top level (e.g., Region 'SOUTH LUZON')
-            cursor.execute(f"INSERT INTO {table} (name) VALUES (?)", (name,))
-        return cursor.lastrowid
+    return result[0] if result else None
+
+def get_existing_location_ids(cursor, record):
+    region_id = find_existing_id(cursor, "regions", record.get("category"))
+    if not region_id:
+        return None
+
+    province_id = find_existing_id(
+        cursor,
+        "provinces",
+        record.get("province"),
+        region_id,
+        "region_id",
+    )
+    if not province_id:
+        return None
+
+    city_id = find_existing_id(
+        cursor,
+        "cities",
+        record.get("city"),
+        province_id,
+        "province_id",
+    )
+    if not city_id:
+        return None
+
+    cursor.execute(
+        "SELECT 1 FROM price_records WHERE city_id = ? LIMIT 1",
+        (city_id,),
+    )
+    if not cursor.fetchone():
+        return None
+
+    return region_id, province_id, city_id
 
 def save_fuel_data(data_list):
     conn = sqlite3.connect(DB_NAME)
@@ -31,10 +72,15 @@ def save_fuel_data(data_list):
 
     for record in data_list:
         try:
-            # 1. Handle Hierarchy
-            region_id = get_or_create_id(cursor, "regions", record['category'])
-            province_id = get_or_create_id(cursor, "provinces", record['province'], region_id, "region_id")
-            city_id = get_or_create_id(cursor, "cities", record['city'], province_id, "province_id")
+            location_ids = get_existing_location_ids(cursor, record)
+            if not location_ids:
+                print(
+                    "⚠️ Skipped unknown location: "
+                    f"{record.get('category')} / {record.get('province')} / {record.get('city')}"
+                )
+                continue
+
+            _, _, city_id = location_ids
             
             # 2. Handle Prices for each Brand
             for brand in brands:

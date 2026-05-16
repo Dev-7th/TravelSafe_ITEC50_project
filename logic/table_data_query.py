@@ -11,6 +11,11 @@ def get_fuel_types():
             SELECT DISTINCT fuel_type
             FROM price_records
             WHERE fuel_type IS NOT NULL AND TRIM(fuel_type) != ''
+                AND date_monitored = (
+                    SELECT MAX(date_monitored)
+                    FROM price_records
+                    WHERE date_monitored IS NOT NULL
+                )
             ORDER BY fuel_type;
         """)
         return [row[0] for row in cursor.fetchall()]
@@ -54,6 +59,11 @@ def search_fuel_prices(search_term, fuel_type=None):
         params.append(fuel_type)
 
     query = """
+    WITH latest_report AS (
+        SELECT MAX(date_monitored) AS date_monitored
+        FROM price_records
+        WHERE date_monitored IS NOT NULL
+    )
     SELECT 
         pr.brand_name,
         c.name AS city_name,
@@ -65,6 +75,7 @@ def search_fuel_prices(search_term, fuel_type=None):
     FROM price_records pr
     JOIN cities c ON pr.city_id = c.id
     JOIN provinces p ON c.province_id = p.id
+    JOIN latest_report lr ON pr.date_monitored = lr.date_monitored
     WHERE pr.brand_name != 'OVERALL RANGE'
     """
 
